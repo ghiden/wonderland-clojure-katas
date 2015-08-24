@@ -3,10 +3,10 @@
 (def alphabets (seq "abcdefghijklmnopqrstuvwxyz"))
 
 (def table
-  (apply conj
-         (for [i (range 26)]
-           (let [values (concat (drop i alphabets) (take i alphabets))]
-             {(nth alphabets i) (apply conj (map (fn [k v] {k v}) alphabets values))}))))
+  (zipmap alphabets
+          (for [i (range 26)]
+            (let [values (concat (drop i alphabets) (take i alphabets))]
+              (zipmap alphabets values)))))
 
 (defn encode [keyword message]
   (let [code (take (count message) (cycle (seq keyword)))]
