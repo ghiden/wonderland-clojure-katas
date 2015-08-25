@@ -8,11 +8,21 @@
             (let [values (concat (drop i alphabets) (take i alphabets))]
               (zipmap alphabets values)))))
 
+(defn gen-code [keyword message]
+  (take (count message) (cycle (seq keyword))))
+
 (defn encode [keyword message]
-  (let [code (take (count message) (cycle (seq keyword)))]
+  (let [code (gen-code keyword message)]
     (apply str (map (fn [r c] (get-in table [r c])) (seq message) (seq code)))))
 
+(defn find-row [m c]
+  (->> table
+      (vals)
+      (filter #(= (get % c) m))
+      (first)
+      (vals)
+      (first)))
+
 (defn decode [keyword message]
-  (let [code (take (count message) (cycle (seq keyword)))
-        find-row (fn [m c] (first (vals (first (filter #(= (get % c) m) (vals table))))))]
+  (let [code (gen-code keyword message)]
     (apply str (map (fn [m c] (find-row m c)) (seq message) (seq code)))))
