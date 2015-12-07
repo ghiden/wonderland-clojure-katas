@@ -19,19 +19,36 @@
                       [[] [:boat :goose :you] [:fox :corn]]
                       [[] [:boat] [:fox :goose :corn :you]]])
 
-(defn done? [state]
-  (empty? (first state)))
+(defn done? [states]
+  (let [bank (nth (map set (last states)) 2)]
+    (= bank #{:you :goose :corn :fox})))
+
+(defn not-safe? [state]
+  (or
+   (and (contains? state :goose) (contains? state :corn))
+   (and (contains? state :fox) (contains? state :goose))))
 
 (defn from-start [states]
-  (let [current (first (map set (last states)))]
+  (let [state (last states)
+        start (first (map set state))
+        bank (nth state 2)]
     (cond
-      (and (contains? current :fox)
-           (contains? current :goose)
-           (contains? current :corn))
-      (conj states [[:fox :corn] [:boat :goose :you] []]))))
+      (= (count start) 4)
+      [[:fox :corn] [:boat :goose :you] bank]
+      (and (= (count start) 3)
+           (not-safe? start))
+      (let [previous-boat (set (second (second (reverse states))))
+            taking-to-boat (clojure.set/difference start previous-boat)
+            keeping-at-start (clojure.set/difference start taking-to-boat #{:you})]
+        [(into [] keeping-at-start) (into [:boat :you] taking-to-boat) bank])
+      :else
+      (let [without-you (clojure.set/difference start #{:you})
+            taking-to-boat (first without-you)
+            left-over (clojure.set/difference without-you #{taking-to-boat})]
+        [(into [] left-over) [:boat :you taking-to-boat] bank]))))
 
 (defn is-you-at-start [state]
-  (contains? (first state) :you))
+  (contains? (set (first state)) :you))
 
 (defn from-boat-to-start [states]
   (let [state (last states)
@@ -54,22 +71,20 @@
       (from-boat-to-bank states)
       (from-boat-to-start states))))
 
-(defn not-safe? [state]
-  (or
-    (and (contains? :goose) (contains? :corn))
-    (and (contains? :fox) (contains? :goose))))
-
-(defn bring-back-from-bank [current previous]
-  (into [] (clojure.set/union #{:boat} (clojure.set/difference current previous))))
+(defn bring-back-from-bank [current previous-boat start]
+  (let [taking-back (clojure.set/difference current previous-boat)]
+    [start
+     (into [:boat :you] taking-back)
+     (into [] (clojure.set/difference current taking-back #{:you}))]))
 
 (defn from-bank [states]
   (let [state (last states)
         start (first state)
         boat (set (second state))
         bank (set (nth state 2))
-        previous-bank (set (second (second (reverse states))))]
+        previous-boat (set (second (second (reverse states))))]
     (if (not-safe? bank)
-      (bring-back-from-bank bank previous-bank)
+      (bring-back-from-bank bank previous-boat start)
       [start [:boat :you] (into [] (clojure.set/difference bank #{:you}))])))
 
 (defn next-move [states]
@@ -78,9 +93,12 @@
       (contains? (first current) :you)
       (from-start states)
       (contains? (second current) :you)
-      (on-boat)
+      (on-boat states)
       :else
       (from-bank states))))
 
 (defn river-crossing-plan []
-  start-pos)
+  (loop [states start-pos]
+    (if (not (done? states))
+      (recur (conj states (next-move states)))
+      states)))
