@@ -7,25 +7,26 @@
                (slurp)
                (read-string)))
 
+(def a-letter '(\\ \w))
+
+(defn word-regexp-patterns [word]
+  (for [i (range (count word))]
+    (re-pattern (apply str
+                       (concat (take i word)
+                               a-letter
+                               (drop (inc i) word))))))
+
 (defn next-words
   ([word]
    (next-words word '()))
   ([word used]
    (let [used-words (conj used word)
          candidates (filter #(not (some #{%} used-words)) words)
-         w-pattern '(\\ \w)
-         matches (for [i (range (count word))]
-                   (let [pattern (re-pattern
-                                  (apply str
-                                         (concat (take i word)
-                                                 w-pattern
-                                                 (drop (inc i) word))))]
-                     (filter #(re-matches pattern %) candidates)))]
+         matches (for [pattern (word-regexp-patterns word)]
+                   (filter #(re-matches pattern %) candidates))]
      (apply concat matches))))
 
 (defn- doublets-helper [word1 word2 used]
-  (println (str "word1: " word1))
-  (println (str "used: " used))
   (if (= word1 word2)
     used
     (for [candidate (next-words word1 used)]
@@ -36,4 +37,3 @@
     (if (empty? result)
       result
       (concat result (list word2)))))
-
