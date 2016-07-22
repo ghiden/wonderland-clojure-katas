@@ -12,7 +12,7 @@
                [1  :x :x]]]
       (is (= sol (solve-maze maze)))))
 
-    (testing "can find way to exit with 4x4 maze"
+  (testing "can find way to exit with 4x4 maze"
     (let [maze [[:S 0 0 1]
                 [1  1 0 0]
                 [1  0  0 1]
@@ -21,4 +21,17 @@
                 [1  1 :x 0]
                 [1  0 :x 1]
                 [1  1  :x :x]]]
-     (is (= sol (solve-maze maze))))))
+      (is (= sol (solve-maze maze)))))
+
+  (testing "can find way to exit with 5x5 maze"
+    (let [maze [[0 0 0 1 :S]
+                 [1  1 0 0 0]
+                 [1  0  0 1 1]
+                 [1  1  0 0 0]
+                 [:E  0  0 1 1]]
+          sol [[0 0 0 1 :x]
+               [1  1 :x :x :x]
+               [1  0  :x 1 1]
+               [1  1  :x 0 0]
+               [:x  :x  :x 1 1]]]
+      (is (= sol (solve-maze maze))))))

@@ -36,11 +36,12 @@
   (reduce (fn [a [x y]] (assoc-in a [x y] :x)) maze paths))
 
 (defn helper [maze paths]
+  (prn paths)
   (cond
     (= (end-pos maze) (last paths)) paths
     (nil? (last paths)) nil
     :else
-    (first (filter #(> (count %) 0)
+    (first (filter (complement empty?)
                    (map (fn [p] (helper maze (conj paths p)))
                         (next-pos maze paths))))))
 
@@ -68,3 +69,15 @@
          [1  1 :x 0]
          [1  0 :x 1]
          [1  1  :x :x]])
+
+(def m5 [[0 0 0 1 :S]
+         [1  1 0 0 0]
+         [1  0  0 1 1]
+         [1  1  0 0 0]
+         [:E  0  0 1 1]])
+
+(def a5 [[0 0 0 1 :x]
+         [1  1 :x :x :x]
+         [1  0  :x 1 1]
+         [1  1  :x 0 0]
+         [:x  :x  :x 1 1]])
