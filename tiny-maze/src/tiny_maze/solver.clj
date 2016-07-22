@@ -50,7 +50,7 @@
 
 (defn print-maze [maze]
   (doseq [r maze]
-    (prn r)))
+    (prn (apply str (map #(format "%3s" %) r)))))
 
 (def m3 [[:S 0 1]
          [1  0 1]
